@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>STRIVE — Placement Prep Platform</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  body { background: linear-gradient(180deg,#F8FAFC 0%,#F1F5F9 100%); min-height: 100vh; }
+  nav { background: linear-gradient(120deg,#3730A3,#4F46E5); padding: 14px 28px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; box-shadow: 0 2px 10px rgba(55,48,163,0.25); }
+  nav .logo { color: white; font-size: 22px; font-weight: bold; margin-right: auto; cursor: help; }
+  nav button { background: transparent; color: white; border: 1.5px solid white; padding: 7px 16px; border-radius: 7px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+  nav button:hover, nav button.active { background: white; color: #4F46E5; }
+  .page { display: none; padding: 32px; max-width: 1000px; margin: 0 auto; }
+  .page.active { display: block; }
+  h2 { color: #4F46E5; margin-bottom: 8px; }
+  .subtitle { color: #6B7280; margin-bottom: 24px; }
+  .card { background: white; border-radius: 14px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .stat-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .stat-card p { color: #6B7280; font-size: 14px; margin-bottom: 6px; }
+  .stat-card h3 { color: #1F2937; font-size: 22px; }
+  input, select { width: 100%; padding: 11px 14px; border: 1.5px solid #E5E7EB; border-radius: 9px; font-size: 15px; margin-bottom: 14px; outline: none; transition: border 0.2s; }
+  input:focus, select:focus { border-color: #4F46E5; }
+  .btn { width: 100%; padding: 13px; background: #4F46E5; color: white; border: none; border-radius: 9px; font-size: 15px; cursor: pointer; margin-top: 6px; transition: background 0.2s; }
+  .btn:hover { background: #3730A3; }
+  .btn-outline { background: white; color: #4F46E5; border: 2px solid #4F46E5; margin-bottom: 10px; }
+  .btn-outline:hover { background: #4F46E5; color: white; }
+  .btn-sm { width: auto; padding: 8px 16px; font-size: 13px; border-radius: 7px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .badge-urgent { background: #FEF2F2; color: #DC2626; }
+  .badge-normal { background: #F5F3FF; color: #4F46E5; }
+  .badge-green { background: #ECFDF5; color: #059669; }
+  .placement-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .placement-info h3 { color: #1F2937; margin-bottom: 4px; }
+  .placement-info p { color: #6B7280; font-size: 14px; }
+  .story-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .story-header h3 { color: #1F2937; }
+  .story-header p { color: #6B7280; font-size: 13px; }
+  .upvote-btn { background: #F5F3FF; border: none; border-radius: 8px; padding: 8px 14px; cursor: pointer; color: #4F46E5; font-weight: bold; font-size: 15px; }
+  .upvote-btn:hover { background: #EDE9FE; }
+  .goal-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+  .goal-row input[type=checkbox] { width: 18px; height: 18px; accent-color: #4F46E5; cursor: pointer; }
+  .mood-btn { width: 100%; padding: 14px; background: white; color: #4F46E5; border: 2px solid #4F46E5; border-radius: 9px; font-size: 16px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; }
+  .mood-btn:hover { background: #4F46E5; color: white; }
+  .result-box { background: #F5F3FF; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .result-box p { margin-bottom: 8px; line-height: 1.6; }
+  .loading { text-align: center; color: #4F46E5; padding: 20px; font-size: 16px; }
+  .onboard-wrap { min-height: 90vh; display: flex; align-items: center; justify-content: center; }
+  .onboard-card { background: white; border-radius: 18px; padding: 40px; width: 420px; box-shadow: 0 4px 24px rgba(0,0,0,0.1); }
+  .step { display: none; }
+  .step.active { display: block; }
+  .streak-fire { font-size: 48px; text-align: center; margin: 10px 0; }
+  .tag { display: inline-block; background: #EDE9FE; color: #4F46E5; border-radius: 6px; padding: 3px 10px; font-size: 13px; margin: 3px; }
+  .target-btn { background: #4F46E5; color: white; border: none; border-radius: 8px; padding: 9px 14px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+  .target-btn.targeted { background: #10B981; }
+  canvas { max-height: 260px; }
+  @media(max-width:600px) { .grid-3,.grid-2 { grid-template-columns: 1fr; } .onboard-card { width: 95vw; padding: 24px; } }
+  body { position: relative; overflow-x: hidden; }
+  .bg-blob { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.2; z-index: -1; animation: float 22s ease-in-out infinite; }
+  .bg-blob.b1 { width: 380px; height: 380px; background: #A5B4FC; top: -100px; left: -100px; }
+  .bg-blob.b2 { width: 320px; height: 320px; background: #CBD5E1; bottom: -80px; right: -80px; animation-delay: -8s; }
+  .bg-blob.b3 { width: 260px; height: 260px; background: #C7D2FE; top: 45%; right: 8%; animation-delay: -4s; }
+  @keyframes float { 0%,100%{ transform: translate(0,0) scale(1);} 50%{ transform: translate(24px,-24px) scale(1.06);} }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+  .quiz-tab { background: white; color: #4F46E5; border: 2px solid #4F46E5; border-radius: 8px; padding: 8px 16px; cursor: pointer; font-size: 13px; margin-right: 8px; }
+  .quiz-tab.active { background: #4F46E5; color: white; }
+  .quiz-progress { height: 6px; background: #E5E7EB; border-radius: 4px; margin-bottom: 16px; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: #4F46E5; transition: width 0.3s; }
+  .quiz-opt-btn { display: flex; align-items: center; gap: 10px; }
+  .opt-letter { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #EDE9FE; color: #4F46E5; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+  .project-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F3F4F6; }
+  .project-row p { color: #6B7280; font-size: 13px; }
+  .del-btn { background: #FEF2F2; color: #DC2626; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 12px; }
+  @media(max-width:700px){ .grid-4 { grid-template-columns: repeat(2,1fr); } }
+</style>
+</head>
+<body>
+<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+
+<nav>
+  <span class="logo" title="Skill Transformation • Resilience • Improvement • Victory • Excellence">🔥 STRIVE</span>
+  <button onclick="showPage('onboarding')" id="nav-onboarding" class="active">Home</button>
+  <button onclick="showPage('dashboard')" id="nav-dashboard">Dashboard</button>
+  <button onclick="showPage('placements')" id="nav-placements">Placements</button>
+  <button onclick="showPage('projects')" id="nav-projects">Projects</button>
+  <button onclick="showPage('quiz')" id="nav-quiz">Quiz</button>
+  <button onclick="showPage('classes')" id="nav-classes">Classes</button>
+  <button onclick="showPage('stories')" id="nav-stories">Stories</button>
+</nav>
+
+<!-- ONBOARDING PAGE -->
+<div id="page-onboarding" class="page active">
+  <div class="onboard-wrap">
+    <div class="onboard-card">
+
+      <div id="step1" class="step active">
+        <h2>👋 Welcome to STRIVE</h2>
+        <p class="subtitle">S.T.R.I.V.E. — Skill Transformation, Resilience, Improvement, Victory, Excellence</p>
+        <input type="text" id="userName" placeholder="Your Full Name" />
+        <input type="text" id="userCollege" placeholder="Your College Name" />
+        <select id="userBranch">
+          <option value="">Select Your Branch</option>
+          <option>ECE</option><option>CSE</option><option>IT</option>
+          <option>EEE</option><option>Mech</option><option>Civil</option>
+        </select>
+        <select id="userYear">
+          <option value="">Select Your Year</option>
+          <option>1st Year</option><option>2nd Year</option>
+          <option>3rd Year</option><option>4th Year</option>
+        </select>
+        <button class="btn" onclick="goStep2()">Continue →</button>
+      </div>
+
+      <div id="step2" class="step">
+        <h2>🧠 Mood Check-in</h2>
+        <p class="subtitle">How are you feeling about placements today?</p>
+        <button class="mood-btn" onclick="analyseProfile('motivated')">😤 Super Motivated</button>
+        <button class="mood-btn" onclick="analyseProfile('neutral')">😐 Feeling Neutral</button>
+        <button class="mood-btn" onclick="analyseProfile('stressed')">😟 Feeling Stressed</button>
+      </div>
+
+      <div id="step3" class="step">
+        <div id="loadingMsg" class="loading">🤖 Gemini is analysing your profile...<br><br>⏳ Please wait...</div>
+        <div id="resultBox" style="display:none">
+          <h2>🎯 Your Personalised Plan</h2>
+          <div class="result-box" id="geminiResult"></div>
+          <button class="btn" onclick="showPage('dashboard')">Go to Dashboard 🔥</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div id="page-dashboard" class="page">
+  <h2>Welcome back, <span id="dashName">Student</span> 👋</h2>
+  <p class="subtitle" id="dashCollege">Keep your streak alive — you're on a roll!</p>
+
+  <div class="grid-4">
+    <div class="stat-card">
+      <p>🔥 Current Streak</p>
+      <div class="streak-fire">🔥</div>
+      <h3 style="text-align:center">7 Days</h3>
+    </div>
+    <div class="stat-card">
+      <p>🎯 Recommended Domain</p>
+      <h3 id="dashDomain" style="margin-top:16px">Full Stack Dev</h3>
+      <p style="margin-top:8px;font-size:13px">Based on your branch & interest</p>
+    </div>
+    <div class="stat-card">
+      <p>📊 Mock Score</p>
+      <h3 style="margin-top:16px">72 / 100</h3>
+      <p style="margin-top:8px;font-size:13px;color:#10B981">↑ +8 from last week</p>
+    </div>
+    <div class="stat-card">
+      <p>⭐ XP & Level</p>
+      <h3 id="xpLevel" style="margin-top:16px">Level 1</h3>
+      <p id="xpPoints" style="margin-top:8px;font-size:13px">0 XP</p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h3 style="color:#4F46E5;margin-bottom:16px">📊 Skill Gap Map</h3>
+      <canvas id="radarChart"></canvas>
+    </div>
+    <div class="card">
+      <h3 style="color:#4F46E5;margin-bottom:16px">🏆 Today's Goals</h3>
+      <div class="goal-row"><input type="checkbox" id="goal0" onchange="toggleGoal(0,this)"> <span>Complete 10 DSA questions</span></div>
+      <div class="goal-row"><input type="checkbox" id="goal1" onchange="toggleGoal(1,this)"> <span>Watch 1 placement webinar</span></div>
+      <div class="goal-row"><input type="checkbox" id="goal2" onchange="toggleGoal(2,this)"> <span>Attempt 1 mock test</span></div>
+      <div class="goal-row"><input type="checkbox" id="goal3" onchange="toggleGoal(3,this)"> <span>Review PYQ — TCS 2024</span></div>
+      <div class="goal-row"><input type="checkbox" id="goal4" onchange="toggleGoal(4,this)"> <span>Record self-introduction</span></div>
+      <div style="margin-top:16px;padding:14px;background:#F5F3FF;border-radius:10px">
+        <p style="color:#4F46E5;font-weight:600">🏅 Next Badge</p>
+        <p id="badgeText" style="color:#6B7280;font-size:13px;margin-top:4px">Complete 3 more goals to unlock <strong>Consistency Champion</strong> badge!</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLACEMENTS PAGE -->
+<div id="page-placements" class="page">
+  <h2>📅 Upcoming Placements</h2>
+  <p class="subtitle">Click "I'm Targeting This" to personalise your prep plan, or "View Pattern" for the interview rounds</p>
+  <div id="placementList"></div>
+</div>
+
+<!-- QUIZ PAGE -->
+<div id="page-quiz" class="page">
+  <h2>🧩 Quick Quiz</h2>
+  <p class="subtitle">Aptitude, DSA & HR basics — test yourself in under 5 minutes</p>
+  <div style="margin-bottom:12px">
+    <button class="quiz-tab active" id="tabGeneral" onclick="setQuizCategory('general')">General Aptitude</button>
+    <button class="quiz-tab" id="tabPP" onclick="setQuizCategory('pp')">Pre-Placement Basics</button>
+    <button class="quiz-tab" id="tabDomain" onclick="setQuizCategory('domain')">Domain Technical</button>
+  </div>
+  <div class="card"><div id="quizArea"></div></div>
+</div>
+
+<!-- PROJECTS PAGE -->
+<div id="page-projects" class="page">
+  <h2>💼 My Projects</h2>
+  <p class="subtitle">Build your portfolio — recruiters ask about these in every interview</p>
+  <div class="card">
+    <input type="text" id="projTitle" placeholder="Project Title" />
+    <input type="text" id="projStack" placeholder="Tech Stack (e.g. React, Node, MongoDB)" />
+    <select id="projStatus">
+      <option>Planned</option><option>In Progress</option><option>Completed</option>
+    </select>
+    <button class="btn" onclick="addProject()">+ Add Project</button>
+  </div>
+  <div id="projectList"></div>
+</div>
+
+<!-- CLASSES PAGE -->
+<div id="page-classes" class="page">
+  <h2>📚 Recommended Classes</h2>
+  <p class="subtitle" id="classesSubtitle">Curated for your domain</p>
+  <div id="classList"></div>
+</div>
+
+<!-- STORIES PAGE -->
+<div id="page-stories" class="page">
+  <h2>🌟 Senior Placement Stories</h2>
+  <p class="subtitle">Real journeys from students who made it — filter by company or branch</p>
+  <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-sm btn-outline" onclick="filterStories('all')">All</button>
+    <button class="btn btn-sm btn-outline" onclick="filterStories('TCS')">TCS</button>
+    <button class="btn btn-sm btn-outline" onclick="filterStories('Infosys')">Infosys</button>
+    <button class="btn btn-sm btn-outline" onclick="filterStories('Zoho')">Zoho</button>
+    <button class="btn btn-sm btn-outline" onclick="filterStories('ECE')">ECE</button>
+    <button class="btn btn-sm btn-outline" onclick="filterStories('CSE')">CSE</button>
+  </div>
+  <div id="storyList"></div>
+</div>
+
+<script>
+// ── DATA ──
+const placements = [
+  { company: "TCS", date: "2026-10-05", domain: "CSE / ECE / IT", cgpa: "6.5 CGPA", color: "#3B82F6", pattern: "Aptitude → English → Coding (2 Qs) → Technical & HR Interview" },
+  { company: "Infosys", date: "2026-10-12", domain: "All Branches", cgpa: "7.0 CGPA", color: "#8B5CF6", pattern: "Aptitude (Pseudocode-based) → Technical Interview → HR Interview" },
+  { company: "Wipro", date: "2026-10-18", domain: "CSE / ECE", cgpa: "6.0 CGPA", color: "#EC4899", pattern: "Aptitude → Essay Writing → Technical Interview → HR" },
+  { company: "Zoho", date: "2026-11-01", domain: "CSE / IT", cgpa: "No Arrears", color: "#F59E0B", pattern: "Written Test → Coding Round → 3 Technical/Managerial Interviews" },
+  { company: "L&T", date: "2026-11-10", domain: "ECE / EEE / Mech", cgpa: "6.5 CGPA", color: "#10B981", pattern: "Aptitude → Group Discussion → Technical Interview → HR" },
+  { company: "Cognizant", date: "2026-11-20", domain: "All Branches", cgpa: "6.0 CGPA", color: "#6366F1", pattern: "AMCAT Test → Technical Interview → HR Interview" },
+];
+
+const stories = [
+  { author: "Priya R.", company: "TCS", branch: "ECE", year: "2025", votes: 34, story: "Focused on aptitude for 3 weeks straight. Solved 200 PYQs. HR round was all about my final year project — make sure yours is solid. Consistency beats cramming every time." },
+  { author: "Karthik M.", company: "Infosys", branch: "CSE", year: "2025", votes: 28, story: "One mock test every single day for 30 days. My score jumped from 55 to 81. Communication matters more than you think — practice speaking your answers aloud, not just writing them." },
+  { author: "Divya S.", company: "Zoho", branch: "IT", year: "2024", votes: 41, story: "Zoho has 5 rounds and doesn't use third-party platforms. Practice their own pattern from their website. Be patient — the process takes a full day. Coding round tests logic, not syntax." },
+  { author: "Rahul K.", company: "Wipro", branch: "ECE", year: "2025", votes: 19, story: "WILP program was straightforward. Aptitude + English + technical. ECE students — focus on C basics and networking fundamentals. Don't ignore the essay writing section." },
+  { author: "Sneha P.", company: "Infosys", branch: "CSE", year: "2024", votes: 23, story: "InfyTQ certification helped a lot. Complete the Python and DB courses before the drive. The hackathon round is the real differentiator — practice on HackerRank daily." },
+];
+
+let targeted = [];
+try { targeted = JSON.parse(localStorage.getItem('striveTargeted')) || []; } catch(e) {}
+let expandedPattern = null;
+let storyVotes = stories.map(s => s.votes);
+let userData = { name: "Student", branch: "ECE", domain: "Embedded Systems" };
+let goalsDone = [false,false,false,false,false];
+try { goalsDone = JSON.parse(localStorage.getItem('striveGoals')) || goalsDone; } catch(e) {}
+
+// ── NAVIGATION ──
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  if (page === 'dashboard') { initChart(); initGoals(); }
+  if (page === 'placements') renderPlacements();
+  if (page === 'projects') renderProjects();
+  if (page === 'quiz') startQuiz();
+  if (page === 'classes') renderClasses();
+  if (page === 'stories') renderStories('all');
+}
+
+// ── ONBOARDING ──
+function goStep2() {
+  const name = document.getElementById('userName').value.trim();
+  const college = document.getElementById('userCollege').value.trim();
+  const branch = document.getElementById('userBranch').value;
+  const year = document.getElementById('userYear').value;
+  if (!name || !college || !branch || !year) { alert('Please fill all fields!'); return; }
+  userData.name = name; userData.college = college; userData.branch = branch; userData.year = year;
+  document.getElementById('step1').classList.remove('active');
+  document.getElementById('step2').classList.add('active');
+}
+
+async function analyseProfile(mood) {
+  document.getElementById('step2').classList.remove('active');
+  document.getElementById('step3').classList.add('active');
+
+  const GEMINI_KEY = "AQ.Ab8RN6Iayx9DZ0x-W8ZVRD0Ipk5wGt7PADRR5lH4WxIxAz8yLQ"; // Replace with your key
+
+  if (GEMINI_KEY === "AQ.Ab8RN6Iayx9DZ0x-W8ZVRD0Ipk5wGt7PADRR5lH4WxIxAz8yLQ") {
+    setTimeout(() => showResult({
+      domain: userData.branch === "ECE" ? "Embedded Systems & VLSI" : "Full Stack Development",
+      weakAreas: ["Data Structures", "Aptitude", "Communication Skills"],
+      goal: "Complete 1 mock test daily, solve 10 PYQs, and attend 2 webinars this week",
+      motivation: mood === 'stressed' ? "Take it one step at a time. Every expert was once a beginner. You've got this! 💪" : "Your energy is your superpower. Channel it into focused daily prep! 🚀"
+    }), 2000);
+    return;
+  }
+
+  try {
+    const prompt = `A ${userData.branch} engineering student in ${userData.year} feels ${mood} about placements. 
+    Suggest: 1) Best domain to focus on, 2) Top 3 weak areas, 3) A clear 30-day goal, 4) A motivational message for their mood.
+    Reply ONLY in JSON: {"domain":"","weakAreas":[],"goal":"","motivation":""}`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_KEY}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    const text = data.candidates[0].content.parts[0].text;
+    const json = JSON.parse(text.replace(/```json|```/g, "").trim());
+    showResult(json);
+  } catch (e) {
+    showResult({
+      domain: userData.branch === "ECE" ? "Embedded Systems & VLSI" : "Full Stack Development",
+      weakAreas: ["Data Structures", "Aptitude", "Communication"],
+      goal: "Complete 1 mock test daily for 30 days",
+      motivation: "Believe in yourself. Consistent effort beats talent every time! 🔥"
+    });
+  }
+}
+
+function showResult(json) {
+  userData.domain = json.domain;
+  document.getElementById('loadingMsg').style.display = 'none';
+  document.getElementById('resultBox').style.display = 'block';
+  document.getElementById('geminiResult').innerHTML = `
+    <p><strong>🚀 Recommended Domain:</strong> ${json.domain}</p>
+    <p style="margin-top:10px"><strong>📌 Focus Areas:</strong></p>
+    ${json.weakAreas.map(a => `<p style="color:#6B7280;margin-left:12px">• ${a}</p>`).join('')}
+    <p style="margin-top:10px"><strong>🏆 30-Day Goal:</strong> ${json.goal}</p>
+    <p style="margin-top:10px;color:#4F46E5;font-style:italic">💬 ${json.motivation}</p>
+  `;
+  document.getElementById('dashName').textContent = userData.name;
+  document.getElementById('dashDomain').textContent = json.domain;
+}
+
+// ── DASHBOARD CHART ──
+let chartInstance = null;
+function initChart() {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['DSA', 'Aptitude', 'SQL', 'Domain', 'Communication', 'Resume'],
+      datasets: [{
+        label: 'Your Skills',
+        data: [65, 78, 45, 82, 55, 70],
+        backgroundColor: 'rgba(79,70,229,0.2)',
+        borderColor: '#4F46E5',
+        pointBackgroundColor: '#4F46E5',
+        borderWidth: 2
+      }]
+    },
+    options: { scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
+  });
+}
+
+// ── GOALS (persisted) ──
+function initGoals() {
+  goalsDone.forEach((v, i) => { const el = document.getElementById('goal' + i); if (el) el.checked = v; });
+  updateBadge();
+  updateXP();
+  const cEl = document.getElementById('dashCollege');
+  if (cEl) cEl.textContent = userData.college ? '🎓 ' + userData.college : "Keep your streak alive — you're on a roll!";
+}
+function toggleGoal(i, el) {
+  goalsDone[i] = el.checked;
+  try { localStorage.setItem('striveGoals', JSON.stringify(goalsDone)); } catch(e) {}
+  addXP(el.checked ? 10 : -10);
+  updateBadge();
+}
+// ── XP & LEVEL (persisted, Duolingo-style progress) ──
+let xp = 0;
+try { xp = parseInt(localStorage.getItem('striveXP')) || 0; } catch(e) {}
+function addXP(n) {
+  xp = Math.max(0, xp + n);
+  try { localStorage.setItem('striveXP', xp); } catch(e) {}
+  updateXP();
+}
+function updateXP() {
+  const lvl = Math.floor(xp / 50) + 1;
+  const lvlEl = document.getElementById('xpLevel'); if (lvlEl) lvlEl.textContent = 'Level ' + lvl;
+  const ptEl = document.getElementById('xpPoints'); if (ptEl) ptEl.textContent = xp + ' XP';
+}
+// ── PROJECTS (persisted portfolio tracker) ──
+let projects = [];
+try { projects = JSON.parse(localStorage.getItem('striveProjects')) || []; } catch(e) {}
+function saveProjects() { try { localStorage.setItem('striveProjects', JSON.stringify(projects)); } catch(e) {} }
+function addProject() {
+  const t = document.getElementById('projTitle').value.trim();
+  const s = document.getElementById('projStack').value.trim();
+  const st = document.getElementById('projStatus').value;
+  if (!t) { alert('Enter a project title!'); return; }
+  projects.push({ t, s, st });
+  saveProjects();
+  document.getElementById('projTitle').value = '';
+  document.getElementById('projStack').value = '';
+  addXP(15);
+  renderProjects();
+}
+function deleteProject(i) { projects.splice(i, 1); saveProjects(); renderProjects(); }
+function renderProjects() {
+  const list = document.getElementById('projectList');
+  list.innerHTML = projects.map((p, i) => `
+    <div class="card">
+      <div class="project-row">
+        <div>
+          <h3 style="color:#1F2937">${p.t}</h3>
+          <p>${p.s || 'No stack listed'} • <span class="badge badge-${p.st === 'Completed' ? 'green' : p.st === 'In Progress' ? 'normal' : 'urgent'}">${p.st}</span></p>
+        </div>
+        <button class="del-btn" onclick="deleteProject(${i})">Remove</button>
+      </div>
+    </div>`).join('') || '<p style="color:#6B7280;text-align:center;padding:40px">No projects yet — add your first one above!</p>';
+}
+function updateBadge() {
+  const done = goalsDone.filter(Boolean).length;
+  const left = 3 - done;
+  const el = document.getElementById('badgeText');
+  if (!el) return;
+  el.innerHTML = left <= 0
+    ? '🎉 Unlocked: <strong>Consistency Champion</strong> badge!'
+    : `Complete ${left} more goal${left > 1 ? 's' : ''} to unlock <strong>Consistency Champion</strong> badge!`;
+}
+
+// ── PLACEMENTS ──
+function getDaysLeft(dateStr) {
+  return Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+}
+
+function renderPlacements() {
+  const list = document.getElementById('placementList');
+  list.innerHTML = placements.map((p, i) => {
+    const days = getDaysLeft(p.date);
+    const isT = targeted.includes(i);
+    const isExp = expandedPattern === i;
+    return `<div class="card">
+      <div class="placement-row">
+        <div class="placement-info">
+          <h3 style="color:${p.color}">${p.company}</h3>
+          <p>📌 ${p.domain} &nbsp;|&nbsp; 🎓 ${p.cgpa}</p>
+          <p>📆 ${p.date}</p>
+          <div style="margin-top:8px">
+            <span class="badge ${days <= 7 ? 'badge-urgent' : 'badge-normal'}">⏰ ${days} days left</span>
+          </div>
+        </div>
+        <div style="text-align:center;display:flex;flex-direction:column;gap:8px">
+          <button class="target-btn ${isT ? 'targeted' : ''}" onclick="toggleTarget(${i})">
+            ${isT ? '✅ Targeting!' : "🎯 I'm Targeting This"}
+          </button>
+          <button style="background:#F5F3FF;color:#4F46E5;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px" onclick="togglePattern(${i})">
+            📄 ${isExp ? 'Hide' : 'View'} Pattern
+          </button>
+        </div>
+      </div>
+      ${isExp ? `<p style="margin-top:12px;padding-top:12px;border-top:1px solid #F3F4F6;color:#374151;font-size:14px">${p.pattern}</p>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function toggleTarget(i) {
+  targeted.includes(i) ? targeted.splice(targeted.indexOf(i), 1) : targeted.push(i);
+  try { localStorage.setItem('striveTargeted', JSON.stringify(targeted)); } catch(e) {}
+  renderPlacements();
+}
+function togglePattern(i) { expandedPattern = expandedPattern === i ? null : i; renderPlacements(); }
+
+// ── QUIZ ──
+const quizQuestions = [
+  { q: "A train covers 60 km in 45 minutes. What is its speed in km/h?", opts: ["60", "80", "90", "100"], ans: 1 },
+  { q: "Pick the odd one out:", opts: ["Apple", "Banana", "Carrot", "Mango"], ans: 2 },
+  { q: "Choose the closest synonym of 'Diligent':", opts: ["Lazy", "Hardworking", "Careless", "Slow"], ans: 1 },
+  { q: "Which data structure follows LIFO order?", opts: ["Queue", "Stack", "Array", "Linked List"], ans: 1 },
+  { q: "What is the time complexity of binary search on a sorted array?", opts: ["O(n)", "O(log n)", "O(n²)", "O(1)"], ans: 1 },
+  { q: "A sum of money doubles itself in 8 years at simple interest. What is the rate?", opts: ["10%", "12.5%", "15%", "8%"], ans: 1 },
+  { q: "Best approach for 'Tell me about yourself' in an interview:", opts: ["Read your resume word for word", "Give a structured summary of background, skills & goals", "Talk only about hobbies", "Avoid answering directly"], ans: 1 },
+  { q: "Which SQL clause is used to filter grouped results?", opts: ["WHERE", "HAVING", "GROUP BY", "ORDER BY"], ans: 1 },
+];
+const ppQuestions = [
+  { q: "What is generally checked as minimum eligibility for most core companies?", opts: ["Only 10th grade marks", "CGPA/backlog criteria set by the company", "Only extracurriculars", "Nothing, everyone is eligible"], ans: 1 },
+  { q: "A Pre-Placement Talk (PPT) is usually held:", opts: ["After the offer letter is given", "Before the test/interview rounds, to introduce the company", "Only for rejected candidates", "During salary negotiation"], ans: 1 },
+  { q: "Which is typically the FIRST round in most campus placement drives?", opts: ["HR interview", "Technical interview", "Aptitude/Online test", "Final offer discussion"], ans: 2 },
+  { q: "What should you carry to a placement drive?", opts: ["Only your phone", "Resume copies, ID proof & required documents", "Nothing, it's all digital", "Just your college ID"], ans: 1 },
+  { q: "A 'No Arrears' eligibility criterion means:", opts: ["Any number of backlogs is fine", "You must have zero current standing backlogs", "Only final year arrears count", "It applies only to CGPA"], ans: 1 },
+];
+const domainQuestions = {
+  ECE: [
+    { q: "Which device converts AC to DC?", opts: ["Transistor", "Rectifier", "Amplifier", "Oscillator"], ans: 1 },
+    { q: "What does 'VLSI' stand for?", opts: ["Very Large Scale Integration", "Variable Logic System Interface", "Voltage Level Signal Input", "Very Long Signal Integration"], ans: 0 },
+  ],
+  CSE: [
+    { q: "Which sort has the best average-case time complexity?", opts: ["Bubble Sort", "Merge Sort", "Selection Sort", "Insertion Sort"], ans: 1 },
+    { q: "What does 'API' stand for?", opts: ["Application Programming Interface", "Automated Program Input", "Applied Protocol Interchange", "Application Process Integration"], ans: 0 },
+  ],
+  IT: [
+    { q: "Which protocol securely transfers files?", opts: ["FTP", "SFTP", "SMTP", "HTTP"], ans: 1 },
+    { q: "Which of these is a NoSQL database?", opts: ["MySQL", "PostgreSQL", "MongoDB", "Oracle"], ans: 2 },
+  ],
+  EEE: [
+    { q: "Which law relates voltage, current & resistance?", opts: ["Newton's Law", "Ohm's Law", "Faraday's Law", "Kirchhoff's Law"], ans: 1 },
+    { q: "Which device stores energy in an electric field?", opts: ["Inductor", "Capacitor", "Resistor", "Transformer"], ans: 1 },
+  ],
+  Mech: [
+    { q: "Which cycle is used in petrol engines?", opts: ["Diesel Cycle", "Otto Cycle", "Rankine Cycle", "Brayton Cycle"], ans: 1 },
+    { q: "Which property measures resistance to deformation?", opts: ["Density", "Hardness", "Viscosity", "Conductivity"], ans: 1 },
+  ],
+  Civil: [
+    { q: "Which material reinforces RCC?", opts: ["Copper", "Steel", "Aluminum", "Wood"], ans: 1 },
+    { q: "Which instrument measures horizontal & vertical angles?", opts: ["Level", "Theodolite", "Chain", "Tape"], ans: 1 },
+  ],
+};
+let qIndex = 0, qScore = 0, qAnswers = [], quizCategory = 'general';
+function currentQuizSet() {
+  if (quizCategory === 'pp') return ppQuestions;
+  if (quizCategory === 'domain') return domainQuestions[userData.branch] || domainQuestions.CSE;
+  return quizQuestions;
+}
+function setQuizCategory(cat) {
+  quizCategory = cat;
+  document.getElementById('tabGeneral').classList.toggle('active', cat === 'general');
+  document.getElementById('tabPP').classList.toggle('active', cat === 'pp');
+  document.getElementById('tabDomain').classList.toggle('active', cat === 'domain');
+  startQuiz();
+}
+function startQuiz() { qIndex = 0; qScore = 0; qAnswers = []; renderQuiz(); }
+function renderQuiz() {
+  const set = currentQuizSet();
+  const area = document.getElementById('quizArea');
+  if (qIndex >= set.length) {
+    const review = set.map((q, idx) => {
+      const a = qAnswers[idx];
+      const right = a === q.ans;
+      return `<div style="text-align:left;margin-top:12px;padding:12px;background:${right ? '#ECFDF5' : '#FEF2F2'};border-radius:10px">
+        <p style="font-weight:600;color:#1F2937;font-size:14px">${idx + 1}. ${q.q}</p>
+        <p style="font-size:13px;margin-top:6px;color:${right ? '#059669' : '#DC2626'}">${right ? '✅ Correct' : '❌ Your answer: ' + q.opts[a]}</p>
+        ${!right ? `<p style="font-size:13px;color:#059669">✔ Correct answer: ${q.opts[q.ans]}</p>` : ''}
+      </div>`;
+    }).join('');
+    area.innerHTML = `<h3 style="color:#4F46E5">Score: ${qScore}/${set.length}</h3>
+      <p style="color:#6B7280;margin:10px 0">${qScore / set.length >= 0.75 ? 'Excellent! 🔥' : qScore / set.length >= 0.5 ? 'Good effort, keep practicing!' : 'Needs more practice — try again!'}</p>
+      <button class="btn" onclick="startQuiz()">Retake Quiz</button>
+      <div style="margin-top:16px">${review}</div>`;
+    return;
+  }
+  const q = set[qIndex];
+  const pct = Math.round((qIndex / set.length) * 100);
+  area.innerHTML = `<div class="quiz-progress"><div class="quiz-progress-fill" style="width:${pct}%"></div></div>
+    <p style="color:#6B7280;margin-bottom:8px">Question ${qIndex + 1} of ${set.length}</p>
+    <h3 style="margin-bottom:16px">${q.q}</h3>
+    ${q.opts.map((o, i) => `<button class="btn btn-outline quiz-opt-btn" onclick="answerQuiz(${i})"><span class="opt-letter">${String.fromCharCode(65 + i)}</span>${o}</button>`).join('')}`;
+}
+function answerQuiz(i) {
+  const set = currentQuizSet();
+  qAnswers[qIndex] = i;
+  if (i === set[qIndex].ans) { qScore++; addXP(5); }
+  qIndex++;
+  renderQuiz();
+}
+const classSuggestions = {
+  ECE: [ { t: "Analog & Digital Electronics Bootcamp", d: "Op-amps, logic gates & sequential circuits for exams and interviews." },
+         { t: "VLSI & Embedded Systems Foundations", d: "Chip design flow, Verilog basics and microcontroller programming." } ],
+  CSE: [ { t: "DSA Mastery Track", d: "Arrays to graphs, with placement-style problem sets." },
+         { t: "System Design Basics", d: "Scalability, databases and API design fundamentals." } ],
+  IT: [ { t: "Networking Essentials", d: "OSI model, protocols and subnetting for interviews." },
+        { t: "Cloud & DevOps Basics", d: "AWS/Azure fundamentals and CI/CD concepts." } ],
+  EEE: [ { t: "Power Systems Fundamentals", d: "Generation, transmission & protection basics." },
+         { t: "Control Systems Bootcamp", d: "Transfer functions, stability & PID basics." } ],
+  Mech: [ { t: "Thermodynamics & Heat Transfer", d: "Core cycles and exam-style numericals." },
+          { t: "Manufacturing Processes Overview", d: "Casting, welding, machining fundamentals." } ],
+  Civil: [ { t: "Structural Analysis Basics", d: "Beams, trusses and load calculations." },
+           { t: "Concrete Technology & RCC Design", d: "Mix design and reinforcement basics." } ],
+};
+function renderClasses() {
+  const branch = userData.branch && classSuggestions[userData.branch] ? userData.branch : null;
+  document.getElementById('classesSubtitle').textContent = branch ? `Curated for ${branch} students` : 'Complete onboarding to see classes tailored to your branch';
+  const list = branch ? classSuggestions[branch] : classSuggestions.CSE;
+  document.getElementById('classList').innerHTML = list.map(c => `
+    <div class="card">
+      <h3 style="color:#4F46E5">${c.t}</h3>
+      <p style="color:#6B7280;font-size:14px;margin-top:6px">${c.d}</p>
+    </div>`).join('');
+}
+
+// ── STORIES ──
+function renderStories(filter) {
+  const filtered = filter === 'all' ? stories : stories.filter(s => s.company === filter || s.branch === filter);
+  document.getElementById('storyList').innerHTML = filtered.map((s, i) => `
+    <div class="card">
+      <div class="story-header">
+        <div>
+          <h3>${s.author} → <span style="color:#4F46E5">${s.company}</span></h3>
+          <p>${s.branch} • Batch ${s.year}</p>
+        </div>
+        <button class="upvote-btn" onclick="upvote(${i})">👍 ${storyVotes[i]}</button>
+      </div>
+      <p style="color:#374151;line-height:1.7;font-style:italic">"${s.story}"</p>
+      <div style="margin-top:12px">
+        <span class="tag">${s.company}</span>
+        <span class="tag">${s.branch}</span>
+        <span class="tag">Batch ${s.year}</span>
+      </div>
+    </div>
+  `).join('') || '<p style="color:#6B7280;text-align:center;padding:40px">No stories found for this filter.</p>';
+}
+
+function filterStories(f) { renderStories(f); }
+function upvote(i) { storyVotes[i]++; renderStories('all'); }
+</script>
+</body>
+</html>
