@@ -18,15 +18,3 @@ Chart.js (via CDN) for the skill radar chart
 Browser localStorage for saving goals, XP, targeted placements and projects across visits
 🚀 Running it
 
-No installation needed — it's a single HTML file.
-
-Locally: download index.html (or strive.html) and open it in any browser.
-
-Hosted (GitHub Pages):
-
-Push this file to a GitHub repository.
-Go to Settings → Pages, set the source to the main branch, root folder.
-Your live link will be https://<username>.github.io/<repo-name>/.
-📂 Project Structure
-├── index.html   # the entire app — markup, styles and logic in one file
-└── README.md    # this file
